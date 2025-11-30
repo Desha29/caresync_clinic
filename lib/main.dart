@@ -1,28 +1,51 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
-import 'core/constants/app_theme.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'core/constants/app_colors.dart';
+import 'data/datasources/auth_remote_data_source.dart';
+import 'data/repositories/auth_repository_impl.dart';
+import 'presentation/cubit/auth/auth_cubit.dart';
+import 'presentation/cubit/dashboard/dashboard_cubit.dart';
 import 'presentation/pages/dashboard_page.dart';
 import 'presentation/pages/login_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const CareSyncApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class CareSyncApp extends StatelessWidget {
+  const CareSyncApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'CareSync',
-      theme: AppTheme.themeData,
-      initialRoute: '/login',
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/signup': (context) => const SignUpPage(),
-        '/dashboard': (context) => const DashboardPage(),
-      },
+  
+    final authDataSource = AuthRemoteDataSourceImpl();
+    final authRepository = AuthRepositoryImpl(remoteDataSource: authDataSource);
+
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => AuthCubit(authRepository: authRepository),
+        ),
+        BlocProvider(
+          create: (context) => DashboardCubit(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'CareSync Clinic',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primaryColor: AppColors.primaryBlue,
+          scaffoldBackgroundColor: AppColors.lightGray,
+          fontFamily: 'Inter',
+          useMaterial3: true,
+        ),
+        initialRoute: '/login',
+        routes: {
+          '/login': (context) => const LoginPage(),
+          '/dashboard': (context) => const DashboardPage(),
+        },
+      ),
     );
   }
 }
